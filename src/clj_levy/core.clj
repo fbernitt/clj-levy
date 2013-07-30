@@ -1,6 +1,7 @@
 (ns clj-levy.core)
 
 (defn levenshtein
+  "Calculates the levenshtein distance for two strings recursivly"
   [seq1 seq2]
   (cond
     (empty? seq1) (count seq2)
@@ -28,7 +29,6 @@
                       (inc (aget score (dec y) x))
                       (inc (aget score y (dec x)))
                       (+ cost (aget score (dec y) (dec x))))]
-          ;(println (str x y "=" value " and cost " cost))
           (aset-int score y x value)
           ;now the damerau additions
           (when (and (> x 1) (> y 1))
@@ -39,7 +39,6 @@
                             (+ cost (aget score (- y 2) (- x 2))))]
                 (aset-int score y x value))))
       )))
-    ;(pprint/pprint score)
     (aget score (count seq1) (count seq2))))
 
 (def qwertz-chars [["^1234567890ß´" "°!\"§$%&/()=?`"]
@@ -63,12 +62,14 @@
                  keyboard-layout)))))
 
 (defn- button-distance
+  "Calculates the distance between two keys - destructures keymap [col row shift]"
   [keymap [x1 y1 shift1] [x2 y2 shift2]]
   (let [x (- x2 x1)
         y (- y2 y1)]
     (int (Math/sqrt (+ (* x x) (* y y))))))
 
 (defn- max-distance
+  "Calculates the maximum possible distance between any two keys within the keymap"
   [keymap]
   (let [buttons (vals keymap)]
     (reduce max
@@ -77,7 +78,7 @@
           (map #(button-distance keymap % b) buttons))))))
 
 (defn- char-distance
-  "returns the number of steps between to keys. If no key for char is found max distance is returned"
+  "Returns the number of steps between to keys. If no key for char is found max distance is returned"
   [c1 c2 keymap]
   (let [b1 (keymap c1)
         b2 (keymap c2)]
