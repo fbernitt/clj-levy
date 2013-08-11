@@ -1,21 +1,33 @@
-(ns clj-levy.core)
+(ns clj-levy.core
+  (:import (clj_levy Levenshtein DamerauLevenshtein)))
 
-(defn levenshtein
-  "Calculates the levenshtein distance for two strings recursivly"
+(defn- recursive-levenshtein
+  "Calculates the levenshtein distance for two strings recursivly. Implementation gets very slow for longer strings."
   [seq1 seq2]
   (cond
     (empty? seq1) (count seq2)
     (empty? seq2) (count seq1)
     :else (min
             (+ (if (= (first seq1) (first seq2)) 0 1)
-               (levenshtein (rest seq1) (rest seq2)))
-            (inc (levenshtein (rest seq1) seq2))
-            (inc (levenshtein seq1 (rest seq2))))))
+               (recursive-levenshtein (rest seq1) (rest seq2)))
+            (inc (recursive-levenshtein (rest seq1) seq2))
+            (inc (recursive-levenshtein seq1 (rest seq2))))))
+
+
+(defn levenshtein
+  "Calculates the levenshtein distance for two strings recursivly."
+  [seq1 seq2]
+  (Levenshtein/distanceOf seq1 seq2))
+
+(defn damerau-levenshtein
+  "Calculates the damerau-levenshtein distance of two strings in an iterative way"
+  [seq1 seq2]
+  (DamerauLevenshtein/distanceOf seq1 seq2))
 
 
 ; http://stackoverflow.com/questions/8619785/what-is-an-efficient-way-to-measure-similarity-between-two-strings-levenshtein
-(defn damerau-levenshtein
-  "Calculates the damerau-levenshtein distance of two strings in an iterative way"
+(defn- clojure-damerau-levenshtein
+  "Calculates the damerau-levenshtein distance of two strings in an iterative way. Iterative clojure implementation using arrays."
   [seq1 seq2]
   (let [score (make-array Integer/TYPE (+ 2 (count seq1)) (+ 2 (count seq2)))]
     (dotimes [row (inc (count seq1))]
